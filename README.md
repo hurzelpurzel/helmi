@@ -1,5 +1,7 @@
 # helmi
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 `helmi` converts a Kustomize application into a Helm chart.
 
 The command-line tool is called `helmi`. It is a Go reimplementation of
