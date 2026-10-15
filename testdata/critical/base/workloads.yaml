@@ -1,0 +1,216 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  annotations:
+    application.example.com/template: "{{ user_supplied_value }}"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        tier: control-plane
+      annotations:
+        checksum.example.com/config: "managed-by-kustomize"
+    spec:
+      serviceAccountName: api
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: api
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: api
+      containers:
+        - name: api
+          image: ghcr.io/acme/api:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - --config=/etc/runtime/application.yaml
+            - "--literal={{ container.argument }}"
+          env:
+            - name: UPSTREAM_HOST
+              value: replaced-by-kustomize
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: api-credentials
+                  key: USERNAME
+          envFrom:
+            - configMapRef:
+                name: runtime-config
+          ports:
+            - name: https
+              containerPort: 8443
+            - name: metrics
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              scheme: HTTPS
+              path: /ready
+              port: https
+            periodSeconds: 5
+          livenessProbe:
+            grpc:
+              port: 8443
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: runtime
+              mountPath: /etc/runtime
+              readOnly: true
+            - name: scratch
+              mountPath: /tmp
+        - name: metrics-proxy
+          image: quay.io/brancz/kube-rbac-proxy:v0.18.1
+          args: ["--secure-listen-address=0.0.0.0:9443"]
+          ports:
+            - name: proxy
+              containerPort: 9443
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+      volumes:
+        - name: runtime
+          projected:
+            sources:
+              - configMap:
+                  name: runtime-config
+                  items:
+                    - key: application.yaml
+                      path: application.yaml
+                    - key: bootstrap.sh
+                      path: bootstrap.sh
+                      mode: 365
+              - secret:
+                  name: api-credentials
+                  items:
+                    - key: TOKEN
+                      path: token
+        - name: scratch
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+spec:
+  serviceName: database
+  replicas: 2
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: database
+          image: ghcr.io/acme/api:latest
+          command: ["/bin/database"]
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/database
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi
+        storageClassName: encrypted-ssd
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-agent
+spec:
+  selector:
+    matchLabels:
+      app: node-agent
+  template:
+    metadata:
+      labels:
+        app: node-agent
+    spec:
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: agent
+          image: registry.k8s.io/pause:3.10
+          securityContext:
+            privileged: false
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: maintenance
+spec:
+  schedule: "17 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app: maintenance
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: maintenance
+              image: ghcr.io/acme/api:latest
+              command: ["/bin/maintenance"]

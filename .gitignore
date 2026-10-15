@@ -1,0 +1,17 @@
+# Build output
+/helmi
+/dist/
+
+# Test artifacts
+*.out
+*.test
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Go workspace
+go.work
+go.work.sum

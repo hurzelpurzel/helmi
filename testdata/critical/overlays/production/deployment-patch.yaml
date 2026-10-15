@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  minReadySeconds: 30
+  template:
+    metadata:
+      annotations:
+        production.example.com/change-ticket: CHG-12345
+    spec:
+      initContainers:
+        - name: database-migration
+          image: ghcr.io/acme/api:latest
+          command: ["/bin/migrate", "--atomic"]
+          envFrom:
+            - secretRef:
+                name: api-credentials
+          securityContext:
+            allowPrivilegeEscalation: false
+      containers:
+        - name: api
+          env:
+            - name: DEPLOYMENT_ENV
+              value: production
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+        - name: audit-sidecar
+          image: public.ecr.aws/docker/library/busybox:1.36
+          command: ["sh", "-c", "tail -F /var/log/audit.log"]
+          volumeMounts:
+            - name: audit
+              mountPath: /var/log
+      volumes:
+        - name: audit
+          emptyDir: {}

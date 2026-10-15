@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - analysis-run.yaml
+namespace: canary-system
+namePrefix: canary-
+replicas:
+  - name: api
+    count: 1
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/strategy
+        value:
+          type: Recreate
+      - op: add
+        path: /spec/template/metadata/labels/release-track
+        value: canary
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: CANARY_PERCENT
+          value: "5"
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: database
+    patch: |-
+      apiVersion: apps/v1
+      kind: StatefulSet
+      metadata:
+        name: database
+      $patch: delete
+  - target:
+      group: policy
+      version: v1
+      kind: PodDisruptionBudget
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 50%
+  - target:
+      version: v1
+      kind: Service
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/ports/0/port
+        value: 8443

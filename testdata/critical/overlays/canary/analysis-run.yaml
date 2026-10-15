@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisRun
+metadata:
+  name: api-smoke
+spec:
+  metrics:
+    - name: success-rate
+      interval: 30s
+      count: 5
+      successCondition: result[0] >= 0.99
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc:9090
+          query: |-
+            sum(rate(http_requests_total{service="api",status!~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{service="api"}[5m]))

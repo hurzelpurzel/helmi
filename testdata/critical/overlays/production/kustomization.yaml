@@ -1,0 +1,82 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - httproute.yaml
+namespace: production-system
+nameSuffix: -prod
+images:
+  - name: ghcr.io/acme/api
+    newName: registry.example.com:5000/production/api
+    digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+replicas:
+  - name: api
+    count: 8
+  - name: database
+    count: 5
+configMapGenerator:
+  - name: runtime-config
+    behavior: merge
+    literals:
+      - HOST=prod.internal
+      - FEATURE_MODE=strict
+secretGenerator:
+  - name: api-credentials
+    behavior: replace
+    type: Opaque
+    envs:
+      - production-secret.env
+patches:
+  - path: deployment-patch.yaml
+    target:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: api
+  - target:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: node-agent
+    patch: |-
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: node-agent
+      $patch: delete
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: database
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+      - op: add
+        path: /spec/persistentVolumeClaimRetentionPolicy
+        value:
+          whenDeleted: Retain
+          whenScaled: Delete
+  - target:
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+      name: api
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.prod.example.com
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: api.prod.example.com
+  - target:
+      group: platform.example.com
+      version: v1
+      kind: Widget
+      name: primary
+    patch: |-
+      - op: replace
+        path: /spec/mode
+        value: locked
+      - op: remove
+        path: /spec/nested/arbitrary/arrays/0/values/3

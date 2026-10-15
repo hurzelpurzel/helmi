@@ -1,0 +1,64 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rbac.yaml
+  - workloads.yaml
+  - networking.yaml
+  - policies.yaml
+  - crd.yaml
+  - custom-resources.yaml
+components:
+  - components/monitoring
+namespace: critical-system
+namePrefix: core-
+commonAnnotations:
+  migration.example.com/source: critical-fixture
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: critical-platform
+    includeSelectors: false
+configMapGenerator:
+  - name: runtime-config
+    files:
+      - application.yaml=config/application.yaml
+      - bootstrap.sh=config/bootstrap.sh
+    literals:
+      - HOST=base.internal
+      - TEMPLATE={{ .application.mustRemainLiteral }}
+secretGenerator:
+  - name: api-credentials
+    type: Opaque
+    envs:
+      - secret.env
+generatorOptions:
+  labels:
+    generated-by: kustomize
+  annotations:
+    migration.example.com/generated: "true"
+images:
+  - name: ghcr.io/acme/api
+    newTag: 1.4.7
+replicas:
+  - name: api
+    count: 3
+replacements:
+  - source:
+      kind: ConfigMap
+      name: runtime-config
+      fieldPath: data.HOST
+    targets:
+      - select:
+          kind: Deployment
+          name: api
+        fieldPaths:
+          - spec.template.spec.containers.0.env.0.value
+patches:
+  - target:
+      group: platform.example.com
+      version: v1
+      kind: Widget
+      name: primary
+    patch: |-
+      - op: add
+        path: /metadata/annotations/migration.example.com~1patched
+        value: "true"

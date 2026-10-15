@@ -1,0 +1,10 @@
+server:
+  port: 8443
+  banner: |-
+    ---
+    {{ must.not.be.rendered.by.helm }}
+features:
+  audit: true
+  modes:
+    - safe
+    - strict

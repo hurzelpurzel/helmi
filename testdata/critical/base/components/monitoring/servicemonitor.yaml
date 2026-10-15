@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api
+spec:
+  selector:
+    matchLabels:
+      app: api
+  endpoints:
+    - port: metrics
+      interval: 15s
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          regex: expensive_.*
+          action: drop
