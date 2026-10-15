@@ -4,17 +4,16 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"helmi/internal/version"
 )
 
-var (
-	version = "2.0.0"
-	verbose bool
-)
+var verbose bool
 
 var rootCmd = &cobra.Command{
 	Use:           "helmi",
 	Short:         "Convert rendered Kustomize configurations into verified Helm charts",
-	Version:       version,
+	Version:       version.Version,
 	SilenceErrors: false,
 	SilenceUsage:  true,
 	RunE: func(cmd *cobra.Command, args []string) error {
