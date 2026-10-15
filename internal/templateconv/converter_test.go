@@ -3,7 +3,7 @@ package templateconv
 import (
 	"testing"
 
-	"helmchen/internal/yamlutil"
+	"helmi/internal/yamlutil"
 
 	"gopkg.in/yaml.v3"
 )

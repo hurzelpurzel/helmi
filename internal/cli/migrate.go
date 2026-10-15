@@ -3,9 +3,9 @@ package cli
 import (
 	"path/filepath"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/migrator"
-	"helmchen/internal/multioverlay"
+	"helmi/internal/errs"
+	"helmi/internal/migrator"
+	"helmi/internal/multioverlay"
 
 	"github.com/spf13/cobra"
 )

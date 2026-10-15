@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/yamlutil"
+	"helmi/internal/errs"
+	"helmi/internal/yamlutil"
 
 	"gopkg.in/yaml.v3"
 )

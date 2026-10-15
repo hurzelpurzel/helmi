@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/generator"
-	"helmchen/internal/helm"
-	"helmchen/internal/kustomize"
-	"helmchen/internal/resources"
-	"helmchen/internal/yamlutil"
+	"helmi/internal/errs"
+	"helmi/internal/generator"
+	"helmi/internal/helm"
+	"helmi/internal/kustomize"
+	"helmi/internal/resources"
+	"helmi/internal/yamlutil"
 )
 
 const defaultTimeout = 120

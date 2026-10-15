@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/helm"
+	"helmi/internal/errs"
+	"helmi/internal/helm"
 
 	"github.com/spf13/cobra"
 )

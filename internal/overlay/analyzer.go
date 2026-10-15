@@ -3,9 +3,9 @@ package overlay
 import (
 	"sort"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/resources"
-	"helmchen/internal/yamlutil"
+	"helmi/internal/errs"
+	"helmi/internal/resources"
+	"helmi/internal/yamlutil"
 
 	"gopkg.in/yaml.v3"
 )

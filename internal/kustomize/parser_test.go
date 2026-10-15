@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"helmchen/internal/yamlutil"
+	"helmi/internal/yamlutil"
 )
 
 func hasKustomize() bool {

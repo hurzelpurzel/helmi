@@ -1,6 +1,6 @@
 package main
 
-import "helmchen/internal/cli"
+import "helmi/internal/cli"
 
 func main() {
 	cli.Execute()

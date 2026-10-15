@@ -5,8 +5,8 @@
 package templateconv
 
 import (
-	"helmchen/internal/resources"
-	"helmchen/internal/yamlutil"
+	"helmi/internal/resources"
+	"helmi/internal/yamlutil"
 
 	"gopkg.in/yaml.v3"
 )

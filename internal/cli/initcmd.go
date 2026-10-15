@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"helmchen/internal/errs"
-	"helmchen/internal/generator"
+	"helmi/internal/errs"
+	"helmi/internal/generator"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"

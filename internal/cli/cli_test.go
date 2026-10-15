@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"helmchen/internal/helm"
+	"helmi/internal/helm"
 )
 
 var helmiBin string

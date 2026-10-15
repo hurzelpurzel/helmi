@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"helmchen/internal/migrator"
+	"helmi/internal/migrator"
 
 	"github.com/spf13/cobra"
 )

@@ -1,4 +1,4 @@
-module helmchen
+module helmi
 
 go 1.23
 

@@ -1,6 +1,6 @@
-# helmchen
+# helmi
 
-`helmchen` converts a Kustomize application into a Helm chart.
+`helmi` converts a Kustomize application into a Helm chart.
 
 The command-line tool is called `helmi`. It is a Go reimplementation of
 [`kustomize-to-helm`](https://github.com/gokulapap/kustomize-to-helm).

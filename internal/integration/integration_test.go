@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
-	"helmchen/internal/helm"
-	"helmchen/internal/kustomize"
-	"helmchen/internal/migrator"
-	"helmchen/internal/multioverlay"
-	"helmchen/internal/resources"
+	"helmi/internal/helm"
+	"helmi/internal/kustomize"
+	"helmi/internal/migrator"
+	"helmi/internal/multioverlay"
+	"helmi/internal/resources"
 )
 
 func fixtures(parts ...string) string {
